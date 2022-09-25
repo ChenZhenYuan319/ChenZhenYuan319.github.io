@@ -1,12 +1,288 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyWebgis</title>
+    <meta charset="utf-8">
+    <title>Global Observations</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+          integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+            integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+            crossorigin=""></script>
+
+    <!-- Opacity controls: https://github.com/lizardtechblog/Leaflet.OpacityControls -->
+    <link rel="stylesheet" href="lib/opacity/Control.Opacity.css"/>
+    <script src="lib/opacity/Control.Opacity.js"></script>
+
+    <!-- uncomment to add screenshot button -->
+    <!--
+    <script src="https://unpkg.com/leaflet-simple-map-screenshoter"></script>
+    -->
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: sans-serif;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+        }
+    </style>
 </head>
 <body>
-    
+<div id="map"></div>
+<script>
+    // By the time you get to zoom level 10 you’ve subdivided the earth into more than a million squares.
+    // At zoom level 15, you’re panning across a billion tiles, and a trillion tiles at zoom level 20.
+    var terrain = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+        // var terrain = L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=0c8036938292455e87aa41887fd93d46', {
+        opacity: 1.0,
+        attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS',
+        maxZoom: 18
+    });
+
+    var streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        opacity: 1.0,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        opacity: 1.0,
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+
+    var cartoMap = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        opacity: 1.0,
+        attribution: 'Tiles &copy; Esri &mdash; Source: ArcGIS, Esri',
+        maxZoom: 20
+    });
+
+
+    var blankMap = L.tileLayer('', {
+        opacity: 1.0,
+        attribution: 'Blank Map'
+    });
+
+
+    var newyorktaxi = L.tileLayer('tileDic/nyTaxiTile/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'newyorktaxi'
+    });
+
+    var newairport = L.tileLayer('tileDic/airport2017/new/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'newairport'
+    });
+
+    var checkin_weeplace = L.tileLayer('tileDic/weeplacecheckin/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'checkin_weeplace'
+    });
+
+    var checkin_gowalla2 = L.tileLayer('tileDic/gowallacheckin2/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'checkin_gowalla2'
+    });
+
+    var checkin_gowalla1 = L.tileLayer('tileDic/gowallacheckin1/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 10,
+        attribution: 'checkin_gowalla1'
+    });
+
+    var chicago = L.tileLayer('tileDic/chicago/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'chicago'
+    });
+
+    var airport2017 = L.tileLayer('tileDic/airport2017/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'airport2017'
+    });
+
+    var worldcity4w = L.tileLayer('tileDic/world_city4w/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'worldcity4w'
+    });
+
+    var coast = L.tileLayer('tileDic/coast/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'coast'
+    });
+
+    var fuel_station = L.tileLayer('tileDic/fuel_station/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'fuel_station'
+    });
+
+    var population = L.tileLayer('tileDic/population/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'population'
+    });
+
+    var population2 = L.tileLayer('tileDic/population2/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'population2'
+    });
+
+    var gdp_md = L.tileLayer('tileDic/gdp_md/{z}/{x}/{y}.png', {
+        minZoom: 1,
+        maxZoom: 18,
+        attribution: 'gdp_md'
+    });
+
+    var pureairport = L.tileLayer('tileDic/detailports/pureair/{z}/{x}/{y}.png', {
+    opacity: 1.0,
+    attribution: 'Tiles &copy; Esri &mdash; Source: pureairport'
+    });
+
+    var pureport = L.tileLayer('tileDic/detailports/pureport/{z}/{x}/{y}.png', {
+    opacity: 1.0,
+    attribution: 'Tiles &copy; Esri &mdash; Source: pureairport'
+    });
+
+    var purestation = L.tileLayer('tileDic/detailports/purestation/{z}/{x}/{y}.png', {
+    opacity: 1.0,
+    attribution: 'Tiles &copy; Esri &mdash; Source: pureairport'
+    });
+
+    var pureothers = L.tileLayer('tileDic/detailports/pureothers/{z}/{x}/{y}.png', {
+    opacity: 1.0,
+    attribution: 'Tiles &copy; Esri &mdash; Source: pureairport'
+    });
+
+    var ziyang_osm = L.tileLayer('tileDic/ziyang/ziyang_osm/{z}/{x}/{y}.png', {
+    opacity: 1.0,
+    attribution: 'Tiles &copy; Esri &mdash; Source: ziyang_osm'
+    });
+
+    var city8k = L.tileLayer('tileDic/city8k/pure8k/{z}/{x}/{y}.png', {
+    opacity: 1.0,
+    attribution: 'Tiles &copy; Esri &mdash; Source: city8k'
+    });
+
+    var ziyangnew = L.tileLayer('tileDic/ziyang/newosm/{z}/{x}/{y}.png', {
+    opacity: 1.0,
+    attribution: 'ziyangnew'
+    });
+
+    var globalport = L.tileLayer('tileDic/globalport/{z}/{x}/{y}.png', {
+    opacity: 1.0,
+    attribution: 'globalport'
+    });
+
+    var globalair = L.tileLayer('tileDic/globalair/{z}/{x}/{y}.png', {
+    opacity: 1.0,
+    attribution: 'globalair'
+    });
+
+    // var wms_RF2020=new L.tileLayer.wms({
+    //     url: 'http://localhost:8080/geoserver/pop/wms?service=WMS&version=1.1.0&request=GetMap&layers=pop%3APop2020&bbox=7606197.071424805%2C1600465.6536496235%2C1.5223197071424805E7%2C7213465.6536496235&width=768&height=565&srs=EPSG%3A3857&styles=&format=text%2Fhtml%3B%20subtype%3Dopenlayers', // wms服务的url地址
+    //     blend: false, // 地图级别切换时，不同级别的图片是否进行混合
+    //     tileSize: 256, // 加载WMS图层服务时，图片的分片大小
+    //     params: {
+    //   VERSION: '1.3.0', // wms 版本
+    //   TRANSPARENT: 'TRUE',
+    //   LAYERS: '	pop:Pop2020', // 图层名
+    //   FORMAT: 'image/png'
+    // }
+    // });    
+    // default map value
+    var map = L.map('map', {
+        center: [10, 28],
+        zoom: 3,
+        minZoom: 1,
+        maxZoom: 20,
+        layers: [cartoMap, ziyangnew]
+    });
+
+    var baseMaps = {
+        "Terrain": terrain,
+        "Map": streets,
+        "Satellite": satellite,
+        "CartoMap": cartoMap,
+        // "FireBase": fireBase,
+        "BlankMap": blankMap,
+    };
+
+    var overlayMaps = {
+        // "NewYork Taxi": newyorktaxi,
+        // "checkin_gowalla2": checkin_gowalla2,
+        // "checkin_gowalla1": checkin_gowalla1,
+        // "chicago": chicago,
+        // "airport2017": airport2017,
+        // "newairport": newairport,
+        // "population": population,
+        // "worldcity4w": worldcity4w,
+        "globalport": globalport,
+        "globalair": globalair,
+        "city8k": city8k,
+        "checkin_weeplace": checkin_weeplace,
+        "ziyangnew": ziyangnew,
+        // "RF2020":wms_RF2020,
+        // "population2": population2,
+        // "gdp_md": gdp_md,
+        // "fuel_station": fuel_station,
+        // "coast": coast,
+        // "pureairport": pureairport,
+        // "pureport": pureport,
+        // "purestation": purestation,
+        // "pureothers": pureothers,
+        // "ziyang_osm": ziyang_osm,
+    };
+
+    // var deatilMaps = {
+    //     "coast": coast,
+    // };
+
+    // L.control.layers(baseMaps, overlayMaps, deatilMaps).addTo(map);
+    L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+    var OpacityLayers = L.Layer.extend({
+        // delegate opacity to multiple layers so we can use opacity controls on multiple maps
+        initialize: function (layers) {
+            this.layers = layers;
+            this.options = {
+                opacity: layers[0].options.opacity
+            };
+        },
+        setOpacity: function (opacity) {
+            this.options.opacity = opacity;
+            for (i = 0, len = this.layers.length; i < len; i++) {
+                this.layers[i].setOpacity(opacity);
+            }
+            return this;
+        }
+    });
+
+    var higherOpacity = new L.Control.higherOpacity({
+        position: 'bottomright'
+    });
+    var lowerOpacity = new L.Control.lowerOpacity({
+        position: 'bottomright'
+    });
+    map.addControl(lowerOpacity);
+    map.addControl(higherOpacity);
+    higherOpacity.setOpacityLayer(new OpacityLayers([terrain, streets, satellite]));
+
+    // uncomment to add screenshot button
+    //L.simpleMapScreenshoter().addTo(map)
+</script>
 </body>
 </html>
